@@ -1,11 +1,11 @@
 import express, { Application, Request, Response } from "express";
-import { notesRoutes } from "./controllers/books.controller";
+import { booksRoutes } from "./controllers/books.controller";
 
 const app: Application = express();
 
 app.use(express.json());
 
-app.use("/notes", notesRoutes);
+app.use("/api/books", booksRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to Library App");
