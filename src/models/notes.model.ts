@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
-import { INotes } from "../interfaces/notes.interface";
+import { IBook } from "../interfaces/books.interface";
 
-const noteSchema = new Schema<INotes>(
+const noteSchema = new Schema<IBook>(
   {
     title: { type: String, required: true, trim: true },
     content: { type: String, default: "" },
@@ -25,4 +25,4 @@ const noteSchema = new Schema<INotes>(
   }
 );
 
-export const Note = model<INotes>("Note", noteSchema);
+export const Note = model<IBook>("Note", noteSchema);
