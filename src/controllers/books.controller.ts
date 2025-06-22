@@ -1,35 +1,37 @@
 import express, { Request, Response } from "express";
 import Book from "../models/books.model";
 import { BookResponseDto } from "../interfaces/books.interface";
+import { Document } from "mongoose";
 
 export const booksRoutes = express.Router();
 
-// ...existing code...
+function formatBook(book: Document | any) {
+  const bookObj = book.toObject ? book.toObject() : book;
+  return {
+    _id: bookObj._id,
+    title: bookObj.title,
+    author: bookObj.author,
+    genre: bookObj.genre,
+    isbn: bookObj.isbn,
+    description: bookObj.description,
+    copies: bookObj.copies,
+    available: bookObj.available,
+    createdAt: bookObj.createdAt,
+    updatedAt: bookObj.updatedAt,
+  };
+}
+
+// 1. create book
 booksRoutes.post("/", async (req: Request, res: Response<BookResponseDto>) => {
   try {
     const book = await Book.create(req.body);
 
-    // Convert Mongoose document to plain object
-    const bookObj = book.toObject();
-
-    // Create a new object with _id first
-    const data = {
-      _id: bookObj._id,
-      title: bookObj.title,
-      author: bookObj.author,
-      genre: bookObj.genre,
-      isbn: bookObj.isbn,
-      description: bookObj.description,
-      copies: bookObj.copies,
-      available: bookObj.available,
-      createdAt: bookObj.createdAt,
-      updatedAt: bookObj.updatedAt,
-    };
+    const data = formatBook(book);
 
     res.status(201).json({
       success: true,
       message: "Book created successfully",
-      data, // _id will appear first
+      data,
     });
   } catch (error) {
     res.status(400).json({
@@ -39,17 +41,48 @@ booksRoutes.post("/", async (req: Request, res: Response<BookResponseDto>) => {
     });
   }
 });
-// ...existing code...
+
+// 2. Get All Books
 
 booksRoutes.get("/", async (req: Request, res: Response) => {
-  const books = await Book.find();
+  try {
+    const {
+      filter,
+      sortBy = "createdAt",
+      sort = "desc",
+      limit = "10",
+    } = req.query;
 
-  res.status(201).json({
-    success: true,
-    message: "Book created",
-    books,
-  });
+    // Build filter object
+    const query: any = {};
+    if (filter) {
+      query.genre = filter;
+    }
+
+    // Build sort object
+    const sortObj: any = {};
+    sortObj[sortBy as string] = sort === "asc" ? 1 : -1;
+
+    // Fetch books with filter, sort, and limit
+    const books = await Book.find(query).sort(sortObj).limit(Number(limit));
+
+    const data = books.map(formatBook);
+
+    res.status(201).json({
+      success: true,
+      message: "Books retrieved successfully",
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve books",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 });
+
+// 3. Get Book by ID
 
 booksRoutes.get("/:bookId", async (req: Request, res: Response) => {
   const bookId = req.params.bookId;
