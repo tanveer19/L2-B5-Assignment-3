@@ -113,8 +113,6 @@ booksRoutes.get("/:bookId", (async (req: Request, res: Response) => {
 
 // 4. Update Book
 
-// ...existing code...
-
 booksRoutes.put("/:bookId", (async (req: Request, res: Response) => {
   try {
     const bookId = req.params.bookId;
@@ -146,17 +144,30 @@ booksRoutes.put("/:bookId", (async (req: Request, res: Response) => {
   }
 }) as express.RequestHandler);
 
-// ...existing code...
-
 // 5. Delete Book
 
-booksRoutes.delete("/:bookId", async (req: Request, res: Response) => {
-  const bookId = req.params.bookId;
-  const book = await Book.findByIdAndDelete(bookId);
+booksRoutes.delete("/:bookId", (async (req: Request, res: Response) => {
+  try {
+    const bookId = req.params.bookId;
+    const book = await Book.findByIdAndDelete(bookId);
 
-  res.status(200).json({
-    success: true,
-    message: "Book deleted",
-    book,
-  });
-});
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Book deleted successfully",
+      data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete book",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}) as express.RequestHandler);
