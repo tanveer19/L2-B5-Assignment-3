@@ -113,17 +113,42 @@ booksRoutes.get("/:bookId", (async (req: Request, res: Response) => {
 
 // 4. Update Book
 
-booksRoutes.patch("/:bookId", async (req: Request, res: Response) => {
-  const bookId = req.params.bookId;
-  const updatedBody = req.body;
-  const book = await Book.findByIdAndUpdate(bookId, updatedBody, { new: true });
+// ...existing code...
 
-  res.status(200).json({
-    success: true,
-    message: "Book updated",
-    book,
-  });
-});
+booksRoutes.put("/:bookId", (async (req: Request, res: Response) => {
+  try {
+    const bookId = req.params.bookId;
+    const updatedBody = req.body;
+    const book = await Book.findByIdAndUpdate(bookId, updatedBody, {
+      new: true,
+    });
+
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    const data = formatBook(book);
+
+    res.status(200).json({
+      success: true,
+      message: "Book updated successfully",
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update book",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}) as express.RequestHandler);
+
+// ...existing code...
+
+// 5. Delete Book
 
 booksRoutes.delete("/:bookId", async (req: Request, res: Response) => {
   const bookId = req.params.bookId;
