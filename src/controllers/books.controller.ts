@@ -28,7 +28,7 @@ booksRoutes.post("/", async (req: Request, res: Response<BookResponseDto>) => {
 
     const data = formatBook(book);
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Book created successfully",
       data,
@@ -84,23 +84,41 @@ booksRoutes.get("/", async (req: Request, res: Response) => {
 
 // 3. Get Book by ID
 
-booksRoutes.get("/:bookId", async (req: Request, res: Response) => {
-  const bookId = req.params.bookId;
-  const book = await Book.findById(bookId);
+booksRoutes.get("/:bookId", (async (req: Request, res: Response) => {
+  try {
+    const bookId = req.params.bookId;
+    const book = await Book.findById(bookId);
 
-  res.status(201).json({
-    success: true,
-    message: "Book created",
-    book,
-  });
-});
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+    const data = formatBook(book);
+
+    res.status(200).json({
+      success: true,
+      message: "Book retrieved successfully",
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve book",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}) as express.RequestHandler);
+
+// 4. Update Book
 
 booksRoutes.patch("/:bookId", async (req: Request, res: Response) => {
   const bookId = req.params.bookId;
   const updatedBody = req.body;
   const book = await Book.findByIdAndUpdate(bookId, updatedBody, { new: true });
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     message: "Book updated",
     book,
@@ -111,7 +129,7 @@ booksRoutes.delete("/:bookId", async (req: Request, res: Response) => {
   const bookId = req.params.bookId;
   const book = await Book.findByIdAndDelete(bookId);
 
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     message: "Book deleted",
     book,
