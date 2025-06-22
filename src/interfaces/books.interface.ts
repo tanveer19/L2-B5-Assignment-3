@@ -49,16 +49,10 @@ export interface CreateBookDto {
 }
 
 export interface BookResponseDto {
-  _id: string;
-  title: string;
-  author: string;
-  genre: Genre;
-  isbn: string;
-  description?: string;
-  copies: number;
-  available: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  success: boolean;
+  message: string;
+  data?: any; // Or your Book type/interface
+  error?: string;
 }
 
 // for the borrow summary aggregation
